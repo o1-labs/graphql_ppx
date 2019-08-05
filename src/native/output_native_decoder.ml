@@ -100,7 +100,7 @@ and generate_nullable_decoder config loc inner =
 
 and generate_array_decoder config loc inner =
   [%expr match value with
-    | `List value -> List.map (fun value -> [%e generate_decoder config inner]) value |> Array.of_list
+    | `List value -> Stdlib.List.map (fun value -> [%e generate_decoder config inner]) value |> Stdlib.Array.of_list
     | _ -> [%e make_error_raiser loc [%expr ("Expected array, got " ^ (Yojson.Basic.to_string value))]]] [@metaloc loc]
 
 and generate_custom_decoder config loc ident inner =
