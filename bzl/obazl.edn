@@ -1,0 +1,36 @@
+;; Obazl tool configuration map
+;; FIXME: one config map per workspace
+{
+
+ ;; TODO
+ :overrides {
+             ;; symbol label
+             Digestif "@opam//pkg:digestif.c"
+             }
+ :workspace "mina"
+ :cc-stuff {
+            }
+ :injected-deps {
+                 ;; these are deps that are injected by ppx, and cannot be handled by the converter
+                 }
+ :exclusions #{
+               ;; list of dune files to NOT convert automatically
+               "dune"
+               }
+ :ns-sep "__"
+ :opam {
+        :pins {
+               ;; will be omitted from @u/local-deps cached list, so deps will be @opam//pkg
+               }
+        }
+ :ppx {:shared-pkg "//bzl/ppx"
+       :runtime-data {
+                      "../graphql_schema.json" {:var GRAPHQL_SCHEMA_TARGET :target "//:graphql_schema.json"}
+                      }
+       }
+ :profiles {
+            :all {:flags [:standard "-short-paths" "-cclib" "-ljemalloc"
+                          "-w" "e@a-4-29-40-41-42-44-45-48-58-59-60"]
+                  :src "src/dune.flags.inc"}
+            }
+ }

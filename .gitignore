@@ -1,3 +1,8 @@
+bazel-*
+.bazel
+user.bazelrc
+.cpcache
+
 /_build
 /bin
 /graphql_ppx*.exe
