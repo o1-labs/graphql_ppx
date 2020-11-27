@@ -2,44 +2,22 @@
 
 load(
     "@obazl_rules_ocaml//ocaml:rules.bzl",
-    "ocaml_ns",
     "ppx_archive",
     "ppx_executable",
     "ppx_module",
+    "ppx_ns",
 )
-load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
-load(
-    "//:BUILD.bzl",
-    "REPO_NS_MODULE_OPTS",
-    "REPO_PPX_ARCHIVE_OPTS",
-    "REPO_PPX_EXECUTABLE_OPTS",
-    "REPO_PPX_MODULE_OPTS",
-)
-load(
-    ":BUILD.bzl",
-    "PKG_PPX_ARCHIVE_OPTS",
-    "PKG_PPX_EXECUTABLE_OPTS",
-    "PKG_PPX_MODULE_OPTS",
-)
-
-THIS_PPX_EXECUTABLE_OPTS = REPO_PPX_EXECUTABLE_OPTS + PKG_PPX_EXECUTABLE_OPTS
 
 ################################################################
-## STANZA 1: GRAPHQL_PPX
+## PPX STANZA 1: GRAPHQL_PPX
 ################################################################
-GRAPHQL_PPX_PPX_EXECUTABLE_OPTS = REPO_PPX_EXECUTABLE_OPTS + PKG_PPX_EXECUTABLE_OPTS
-
-GRAPHQL_PPX_PPX_MODULE_OPTS = REPO_PPX_MODULE_OPTS + PKG_PPX_MODULE_OPTS
-
-GRAPHQL_PPX_PPX_ARCHIVE_OPTS = REPO_PPX_ARCHIVE_OPTS + PKG_PPX_ARCHIVE_OPTS + []
+GRAPHQL_PPX_PPX_MODULE_OPTS = []
 
 GRAPHQL_PPX_DEPS = [
     # do not sort (buildifier)
     "@opam//pkg:ppxlib",
     "@graphql_ppx//src/base:graphql_ppx_base",
 ]
-
-GRAPHQL_PPX_PPX = "//bzl/ppx:ppx.exe[ppxlib.metaquot]"
 
 GRAPHQL_PPX_PPX_ARGS = [
     # do not sort (buildifier)
@@ -48,7 +26,7 @@ GRAPHQL_PPX_PPX_ARGS = [
 ############
 ppx_archive(
     name = "graphql_ppx",
-    opts = GRAPHQL_PPX_PPX_ARCHIVE_OPTS,
+    opts = [],
     visibility = ["//visibility:public"],
     deps = GRAPHQL_PPX_DEPS + [
         # do not sort (buildifier)
@@ -154,83 +132,11 @@ ppx_module(
     ],
 )
 
-###################################################################
-######## Configuration Settings - see :BUILD.bzl #################
-bool_flag(
-    name = "always-link",
-    build_setting_default = False,
-)
-
-config_setting(
-    name = "enable_always_link",
-    flag_values = {":always-link": str(True)},
-)
-
-bool_flag(
-    name = "debug",
-    build_setting_default = True,
-)
-
-config_setting(
-    name = "enable_debug",
-    flag_values = {":debug": str(True)},
-)
-
-bool_flag(
-    name = "threads",
-    build_setting_default = True,
-)
-
-config_setting(
-    name = "enable_threads",
-    flag_values = {":threads": str(True)},
-)
-
-bool_flag(
-    name = "tooling",
-    build_setting_default = False,
-)
-
-config_setting(
-    name = "enable_tooling",
-    flag_values = {":tooling": str(True)},
-)
-
-bool_flag(
-    name = "verbose",
-    build_setting_default = False,
-)
-
-config_setting(
-    name = "enable_verbose",
-    flag_values = {":verbose": str(True)},
-)
-
-## PPX control
-string_flag(
-    name = "ppx-out",
-    build_setting_default = "binary",
-    values = [
-        "binary",
-        "text",
-    ],
-)
-
-config_setting(
-    name = "enable_ppx_output_format_text",
-    flag_values = {":ppx-out": "text"},
-)
-
-config_setting(
-    name = "enable_ppx_output_format_binary",
-    flag_values = {":ppx-out": "binary"},
-)
-
 ###############
 ppx_executable(
     name = "ppx1.exe",
-    main = "//bzl/ppx:Driver",
-    opts = THIS_PPX_EXECUTABLE_OPTS,
+    main = "//bzl/ppx/exe:Driver",
+    opts = [],
     visibility = [
         "//src/native:__pkg__",
     ],

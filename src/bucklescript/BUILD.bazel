@@ -1,31 +1,17 @@
-## NOTE: no dependency on `dune.flags` (produced by
-## discover/discover.exe). Currently the discover exe produces no
-## flags. If flags are neeeded they can be handled using Bazel
-## mechanisms; the Bazel build does not need discover.exe.
+## OBAZL GENERATED FILE ## To retain edits (prevent overwrite), delete this line.
 
 load(
     "@obazl_rules_ocaml//ocaml:rules.bzl",
     "ocaml_executable",
     "ocaml_module",
 )
-load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
-load(
-    "//:BUILD.bzl",
-    "REPO_EXECUTABLE_OPTS",
-    "REPO_MODULE_OPTS",
-)
-load(
-    ":BUILD.bzl",
-    "PKG_EXECUTABLE_OPTS",
-    "PKG_MODULE_OPTS",
-)
 
 ################################################################
 ## STANZA 1: EXECUTABLE GRAPHQL_PPX
 ################################################################
-GRAPHQL_PPX_EXECUTABLE_OPTS = REPO_EXECUTABLE_OPTS + PKG_EXECUTABLE_OPTS
+GRAPHQL_PPX_EXECUTABLE_OPTS = []
 
-GRAPHQL_PPX_MODULE_OPTS = REPO_MODULE_OPTS + PKG_MODULE_OPTS
+GRAPHQL_PPX_MODULE_OPTS = []
 
 GRAPHQL_PPX_DEPS = [
     # do not sort (buildifier)
@@ -33,7 +19,7 @@ GRAPHQL_PPX_DEPS = [
     "@graphql_ppx//src/base:graphql_ppx_base",
 ]
 
-GRAPHQL_PPX_PPX = "@//bzl/ppx:ppx.exe[ppx_tools_versioned.metaquot_402]"
+GRAPHQL_PPX_PPX = "@//bzl/ppx/exe:ppx_tools_versioned.metaquot_402"
 
 GRAPHQL_PPX_PPX_ARGS = [
     # do not sort (buildifier)
@@ -42,11 +28,11 @@ GRAPHQL_PPX_PPX_ARGS = [
 #################
 ocaml_executable(
     name = "graphql_ppx.exe",
-    main = ":_Graphql_ppx",
     opts = GRAPHQL_PPX_EXECUTABLE_OPTS,
     visibility = ["//visibility:public"],
     deps = GRAPHQL_PPX_DEPS + [
         # do not sort (buildifier)
+        ":_Graphql_ppx",
         ":_Output_bucklescript_decoder",
         ":_Output_bucklescript_encoder",
         ":_Output_bucklescript_module",
@@ -59,7 +45,12 @@ ocaml_executable(
 ocaml_module(
     name = "_Graphql_ppx",
     src = "graphql_ppx.ml",
-    opts = GRAPHQL_PPX_MODULE_OPTS,
+    opts = GRAPHQL_PPX_MODULE_OPTS + [
+        "-w",
+        # Error (warning 3): deprecated: module Ast_402
+        # Access modules via the Migrate_parsetree toplevel module. Use Migrate_parsetree.Ast_402 instead.
+        "-3"
+    ],
     ppx = GRAPHQL_PPX_PPX,
     ppx_args = GRAPHQL_PPX_PPX_ARGS,
     deps = GRAPHQL_PPX_DEPS + [
@@ -73,7 +64,12 @@ ocaml_module(
 ocaml_module(
     name = "_Output_bucklescript_decoder",
     src = "output_bucklescript_decoder.ml",
-    opts = GRAPHQL_PPX_MODULE_OPTS,
+    opts = GRAPHQL_PPX_MODULE_OPTS + [
+        "-w",
+        # Error (warning 3): deprecated: module Ast_402
+        # Access modules via the Migrate_parsetree toplevel module. Use Migrate_parsetree.Ast_402 instead.
+        "-3"
+    ],
     ppx = GRAPHQL_PPX_PPX,
     ppx_args = GRAPHQL_PPX_PPX_ARGS,
     deps = GRAPHQL_PPX_DEPS + [
@@ -86,7 +82,12 @@ ocaml_module(
 ocaml_module(
     name = "_Output_bucklescript_encoder",
     src = "output_bucklescript_encoder.ml",
-    opts = GRAPHQL_PPX_MODULE_OPTS,
+    opts = GRAPHQL_PPX_MODULE_OPTS + [
+        "-w",
+        # Error (warning 3): deprecated: module Ast_402
+        # Access modules via the Migrate_parsetree toplevel module. Use Migrate_parsetree.Ast_402 instead.
+        "-3"
+    ],
     ppx = GRAPHQL_PPX_PPX,
     ppx_args = GRAPHQL_PPX_PPX_ARGS,
     deps = GRAPHQL_PPX_DEPS + [
@@ -99,7 +100,12 @@ ocaml_module(
 ocaml_module(
     name = "_Output_bucklescript_module",
     src = "output_bucklescript_module.ml",
-    opts = GRAPHQL_PPX_MODULE_OPTS,
+    opts = GRAPHQL_PPX_MODULE_OPTS + [
+        "-w",
+        # Error (warning 3): deprecated: module Ast_402
+        # Access modules via the Migrate_parsetree toplevel module. Use Migrate_parsetree.Ast_402 instead.
+        "-3"
+    ],
     ppx = GRAPHQL_PPX_PPX,
     ppx_args = GRAPHQL_PPX_PPX_ARGS,
     deps = GRAPHQL_PPX_DEPS + [
@@ -114,7 +120,12 @@ ocaml_module(
 ocaml_module(
     name = "_Output_bucklescript_unifier",
     src = "output_bucklescript_unifier.ml",
-    opts = GRAPHQL_PPX_MODULE_OPTS,
+    opts = GRAPHQL_PPX_MODULE_OPTS + [
+        "-w",
+        # Error (warning 3): deprecated: module Ast_402
+        # Access modules via the Migrate_parsetree toplevel module. Use Migrate_parsetree.Ast_402 instead.
+        "-3"
+    ],
     ppx = GRAPHQL_PPX_PPX,
     ppx_args = GRAPHQL_PPX_PPX_ARGS,
     deps = GRAPHQL_PPX_DEPS + [
@@ -132,76 +143,4 @@ ocaml_module(
     ppx = GRAPHQL_PPX_PPX,
     ppx_args = GRAPHQL_PPX_PPX_ARGS,
     deps = GRAPHQL_PPX_DEPS,
-)
-
-###################################################################
-######## Configuration Settings - see :BUILD.bzl #################
-bool_flag(
-    name = "always-link",
-    build_setting_default = False,
-)
-
-config_setting(
-    name = "enable_always_link",
-    flag_values = {":always-link": str(True)},
-)
-
-bool_flag(
-    name = "debug",
-    build_setting_default = True,
-)
-
-config_setting(
-    name = "enable_debug",
-    flag_values = {":debug": str(True)},
-)
-
-bool_flag(
-    name = "threads",
-    build_setting_default = True,
-)
-
-config_setting(
-    name = "enable_threads",
-    flag_values = {":threads": str(True)},
-)
-
-bool_flag(
-    name = "tooling",
-    build_setting_default = False,
-)
-
-config_setting(
-    name = "enable_tooling",
-    flag_values = {":tooling": str(True)},
-)
-
-bool_flag(
-    name = "verbose",
-    build_setting_default = False,
-)
-
-config_setting(
-    name = "enable_verbose",
-    flag_values = {":verbose": str(True)},
-)
-
-## PPX control
-string_flag(
-    name = "ppx-out",
-    build_setting_default = "binary",
-    values = [
-        "binary",
-        "text",
-    ],
-)
-
-config_setting(
-    name = "enable_ppx_output_format_text",
-    flag_values = {":ppx-out": "text"},
-)
-
-config_setting(
-    name = "enable_ppx_output_format_binary",
-    flag_values = {":ppx-out": "binary"},
 )

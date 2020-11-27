@@ -6,32 +6,11 @@ load(
     "ocaml_module",
     "ocaml_ns",
 )
-load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
-load(
-    "//:BUILD.bzl",
-    "REPO_ARCHIVE_OPTS",
-    "REPO_MODULE_OPTS",
-    "REPO_NS_MODULE_OPTS",
-)
-load(
-    ":BUILD.bzl",
-    "PKG_ARCHIVE_OPTS",
-    "PKG_MODULE_OPTS",
-    "PKG_NS_MODULE_OPTS",
-)
 
 ################################################################
 ## STANZA 1: LIBRARY GRAPHQL_PPX_BASE
 ################################################################
-GRAPHQL_PPX_BASE_MODULE_OPTS = REPO_MODULE_OPTS + PKG_MODULE_OPTS
-
-GRAPHQL_PPX_BASE_NS_MODULE_OPTS = REPO_NS_MODULE_OPTS + PKG_NS_MODULE_OPTS
-
-GRAPHQL_PPX_BASE_ARCHIVE_OPTS = REPO_ARCHIVE_OPTS + PKG_ARCHIVE_OPTS + []
-
-GRAPHQL_PPX_BASE_NS_MODULE_OPTS = REPO_NS_MODULE_OPTS + PKG_NS_MODULE_OPTS
-
-GRAPHQL_PPX_BASE_NS_MODULE_OPTS = REPO_NS_MODULE_OPTS + PKG_NS_MODULE_OPTS
+GRAPHQL_PPX_BASE_MODULE_OPTS = []
 
 GRAPHQL_PPX_BASE_DEPS = [
     # do not sort (buildifier)
@@ -40,7 +19,7 @@ GRAPHQL_PPX_BASE_DEPS = [
     "@opam//pkg:yojson",
 ]
 
-GRAPHQL_PPX_BASE_PPX = "@//bzl/ppx:ppx.exe[ppx_tools_versioned.metaquot_402]"
+GRAPHQL_PPX_BASE_PPX = "@//bzl/ppx/exe:ppx_tools_versioned.metaquot_402"
 
 GRAPHQL_PPX_BASE_PPX_ARGS = [
     # do not sort (buildifier)
@@ -49,7 +28,7 @@ GRAPHQL_PPX_BASE_PPX_ARGS = [
 ##############
 ocaml_archive(
     name = "graphql_ppx_base",
-    opts = GRAPHQL_PPX_BASE_ARCHIVE_OPTS,
+    opts = [],
     visibility = ["//visibility:public"],
     deps = GRAPHQL_PPX_BASE_DEPS + [
         # do not sort (buildifier)
@@ -87,10 +66,11 @@ ocaml_archive(
 ocaml_ns(
     name = "Graphql_ppx_base_ns",
     ns = "graphql_ppx_base",
-    opts = GRAPHQL_PPX_BASE_NS_MODULE_OPTS,
+    opts = [],
     submodules = [
         # do not sort (buildifier)
         "ast_serializer_apollo.ml",
+        "build_config.ml",
         "compat.ml",
         "dirty_checker.ml",
         "generator_utils.ml",
@@ -116,7 +96,6 @@ ocaml_ns(
         "traversal_utils.ml",
         "type_utils.ml",
         "validations.ml",
-        "build_config.ml"
     ],
 )
 
@@ -134,6 +113,17 @@ ocaml_module(
         ":_Source_pos",
     ],
 )
+
+#############
+# ocaml_module(
+#     name = "_Build_config.cppo",
+#     src = "build_config.cppo.ml",
+#     ns = ":Graphql_ppx_base_ns",
+#     opts = GRAPHQL_PPX_BASE_MODULE_OPTS,
+#     ppx = GRAPHQL_PPX_BASE_PPX,
+#     ppx_args = GRAPHQL_PPX_BASE_PPX_ARGS,
+#     deps = GRAPHQL_PPX_BASE_DEPS,
+# )
 
 #############
 ocaml_module(
@@ -368,7 +358,7 @@ ocaml_module(
     name = "_Read_schema",
     src = "read_schema.ml",
     ns = ":Graphql_ppx_base_ns",
-    opts = GRAPHQL_PPX_BASE_MODULE_OPTS + ["-linkall"],
+    opts = GRAPHQL_PPX_BASE_MODULE_OPTS,
     ppx = GRAPHQL_PPX_BASE_PPX,
     ppx_args = GRAPHQL_PPX_BASE_PPX_ARGS,
     deps = GRAPHQL_PPX_BASE_DEPS + [
@@ -535,11 +525,25 @@ ocaml_module(
     ],
 )
 
+################################################################
+## STANZA 2: RULE
+################################################################
+## targets: (build_config.ml)
+## deps:    (:first-dep build_config.cppo.ml)
+## action:  (chdir {:dollar "ROOT"} run {:var {:fn bin, :arg cppo}} {:flag "V"} {:arg "OCAML:ocaml_version"} {:var "first-dep"} {:flag "o"} {:var "targets"})
+# genrule(
+#     name = "",
+#     srcs = "",
+#     outs = "(build_config.ml)",
+#     cmd = "\n".join([
+#     ]),
+#     visibility = ["//visibility:public"],
+# )
+
 #############
 ocaml_module(
     name = "_Build_config",
-    src = ":gensrcs",
-    # src = "build_config.ml",
+    src = ":build_config.ml",
     ns = ":Graphql_ppx_base_ns",
     opts = GRAPHQL_PPX_BASE_MODULE_OPTS,
     ppx = GRAPHQL_PPX_BASE_PPX,
@@ -561,76 +565,4 @@ genrule(
     cmd = " ".join([
         "$(location @ocaml//tools:cppo) -V OCAML:4.07.1 -o $@ $<"
     ]),
-)
-
-###################################################################
-######## Configuration Settings - see :BUILD.bzl #################
-bool_flag(
-    name = "always-link",
-    build_setting_default = False,
-)
-
-config_setting(
-    name = "enable_always_link",
-    flag_values = {":always-link": str(True)},
-)
-
-bool_flag(
-    name = "debug",
-    build_setting_default = True,
-)
-
-config_setting(
-    name = "enable_debug",
-    flag_values = {":debug": str(True)},
-)
-
-bool_flag(
-    name = "threads",
-    build_setting_default = True,
-)
-
-config_setting(
-    name = "enable_threads",
-    flag_values = {":threads": str(True)},
-)
-
-bool_flag(
-    name = "tooling",
-    build_setting_default = False,
-)
-
-config_setting(
-    name = "enable_tooling",
-    flag_values = {":tooling": str(True)},
-)
-
-bool_flag(
-    name = "verbose",
-    build_setting_default = False,
-)
-
-config_setting(
-    name = "enable_verbose",
-    flag_values = {":verbose": str(True)},
-)
-
-## PPX control
-string_flag(
-    name = "ppx-out",
-    build_setting_default = "binary",
-    values = [
-        "binary",
-        "text",
-    ],
-)
-
-config_setting(
-    name = "enable_ppx_output_format_text",
-    flag_values = {":ppx-out": "text"},
-)
-
-config_setting(
-    name = "enable_ppx_output_format_binary",
-    flag_values = {":ppx-out": "binary"},
 )
