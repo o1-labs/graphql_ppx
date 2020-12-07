@@ -1,4 +1,1 @@
-build --@ppx//mode=bytecode
-build --@ocaml//mode=bytecode
-
 try-import user.bazelrc
