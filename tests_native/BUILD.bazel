@@ -6,21 +6,10 @@ load(
     "ocaml_module",
     "ppx_executable",
 )
-# load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
-# load(
-#     "//:BUILD.bzl",
-#     "REPO_ARCHIVE_OPTS",
-#     "REPO_MODULE_OPTS",
-#     "REPO_PPX_EXECUTABLE_OPTS",
-# )
-# load(
-#     ":BUILD.bzl",
-#     "PKG_ARCHIVE_OPTS",
-#     "PKG_MODULE_OPTS",
-#     "PKG_PPX_EXECUTABLE_OPTS",
-# )
 
-GRAPHQL_SCHEMA_TARGET = "//:graphql_schema.json"
+exports_files(["graphql_schema.json"])
+
+GRAPHQL_SCHEMA_TARGET = ":graphql_schema.json"
 GRAPHQL_SCHEMA_FILE = "graphql_schema.json"
 
 ################################################################
@@ -36,6 +25,7 @@ GRAPHQL_PPX_TEST_DEPS = [
     # do not sort (buildifier)
     "@opam//pkg:alcotest",
     "@opam//pkg:yojson",
+    "//src/native:graphql_ppx"
 ]
 
 #############
@@ -77,6 +67,7 @@ ocaml_module(
         "-schema={}".format(GRAPHQL_SCHEMA_FILE)
     ],
     ppx_data = [GRAPHQL_SCHEMA_TARGET],
+    ppx_print = "@ppx//print:binary",
     deps = GRAPHQL_PPX_TEST_DEPS,
 )
 
@@ -95,6 +86,7 @@ ocaml_module(
         "-schema={}".format(GRAPHQL_SCHEMA_FILE)
     ],
     ppx_data = [GRAPHQL_SCHEMA_TARGET],
+    # ppx_print = "@ppx//print:binary",
     deps = GRAPHQL_PPX_TEST_DEPS + [
         # do not sort (buildifier)
         ":_Test_shared",
@@ -172,6 +164,7 @@ ocaml_module(
         "-schema={}".format(GRAPHQL_SCHEMA_FILE)
     ],
     ppx_data = [GRAPHQL_SCHEMA_TARGET],
+    ppx_print = "@ppx//print:binary",
     deps = GRAPHQL_PPX_TEST_DEPS + [
         # do not sort (buildifier)
         ":_Test_shared",
@@ -397,6 +390,7 @@ ocaml_module(
         "-schema={}".format(GRAPHQL_SCHEMA_FILE)
     ],
     ppx_data = [GRAPHQL_SCHEMA_TARGET],
+    ppx_print = "@ppx//print:binary",
     deps = GRAPHQL_PPX_TEST_DEPS + [
         # do not sort (buildifier)
         ":_Test_shared",
@@ -413,6 +407,7 @@ ocaml_module(
         "-schema={}".format(GRAPHQL_SCHEMA_FILE)
     ],
     ppx_data = [GRAPHQL_SCHEMA_TARGET],
+    ppx_print = "@ppx//print:binary",
     deps = GRAPHQL_PPX_TEST_DEPS,
 )
 
@@ -454,7 +449,7 @@ ppx_executable(
         "//tests_native:__pkg__",
     ],
     deps = [
-        "@graphql_ppx//src/native:graphql_ppx",
+        "//src/native:graphql_ppx",
         "@opam//pkg:ppxlib",
     ],
 )
