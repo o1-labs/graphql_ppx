@@ -10,7 +10,7 @@ load(
 exports_files(["graphql_schema.json"])
 
 GRAPHQL_SCHEMA_TARGET = ":graphql_schema.json"
-GRAPHQL_SCHEMA_FILE = "graphql_schema.json"
+GRAPHQL_SCHEMA_FILE = "tests_native/graphql_schema.json"
 
 ################################################################
 ## STANZA 1: LIBRARY GRAPHQL_PPX_TEST
@@ -387,7 +387,7 @@ ocaml_module(
     opts = GRAPHQL_PPX_TEST_MODULE_OPTS,
     ppx = ":ppx1.exe",
     ppx_args = [
-        "-schema={}".format(GRAPHQL_SCHEMA_FILE)
+        "-schema", GRAPHQL_SCHEMA_FILE
     ],
     ppx_data = [GRAPHQL_SCHEMA_TARGET],
     ppx_print = "@ppx//print:binary",
