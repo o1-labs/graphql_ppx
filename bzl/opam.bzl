@@ -1,5 +1,6 @@
 PACKAGES = {
     "alcotest": ["1.1.0"],
+    "base": ["v0.12.0"],
     "base_bigstring": ["v0.12.0"],
     "ocaml-migrate-parsetree": ["1.7.3"],
     "ppx_tools_versioned": ["5.4.0", ["ppx_tools_versioned.metaquot_402"]],
@@ -13,6 +14,7 @@ opam = struct(
     version = "2.0",
     switches = {
         "mina-0.1.0": struct(
+            default  = True,
             compiler = "4.07.1",
             packages = PACKAGES
         ),
