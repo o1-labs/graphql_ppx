@@ -21,14 +21,11 @@ git_repository(
     remote = "https://github.com/obazl/tools_bazel",
     branch = "main",
 )
-
-############### Bootstrap OPAM Rules ###############
 git_repository(
     name = "obazl_rules_opam",
     remote = "https://github.com/obazl/rules_opam",
     branch = "main",
 )
-############### Bootstrap OCaml Rules ###############
 git_repository(
     name = "obazl_rules_ocaml",
     remote = "https://github.com/obazl/rules_ocaml",
