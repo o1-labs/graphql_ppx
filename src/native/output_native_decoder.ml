@@ -43,7 +43,7 @@ let boolean_decoder loc =
 let generate_poly_enum_decoder loc enum_meta =
   let enum_match_arms = Ast_helper.(
       List.map
-        (fun {evm_name; _} -> Exp.case 
+        (fun {evm_name; _} -> Exp.case
             (Pat.constant (Pconst_string (evm_name, None)))
             (Exp.variant evm_name None))
         enum_meta.em_values) in
@@ -56,10 +56,10 @@ let generate_poly_enum_decoder loc enum_meta =
                                  (List.concat [enum_match_arms; [fallback_arm]])) in
   let enum_ty = Ast_helper.(
       Typ.variant
-        (List.map (fun { evm_name; _ } -> Rtag ({ txt = evm_name; loc }, [], true, [])) enum_meta.em_values)
+        (List.map (fun {evm_name;_} -> {prf_desc=Rtag ({ txt = evm_name; loc }, true, []);prf_loc=loc;prf_attributes=[]}) enum_meta.em_values)
         Closed None) [@metaloc loc]
   in
-  [%expr match value with 
+  [%expr match value with
     | `String value -> ([%e match_expr]: [%t enum_ty])
     | _ -> [%e make_error_raiser loc [%expr
         "Expected enum value for " ^
@@ -137,14 +137,14 @@ and generate_record_decoder config loc name fields =
   let field_decoder_tuple = Ast_helper.(
       fields
       |> filter_map (function
-          | Fr_named_field (field, loc, inner) -> 
+          | Fr_named_field (field, loc, inner) ->
             let loc = conv_loc loc in
             Some [%expr match Stdlib.List.assoc [%e const_str_expr field] value with
               | value -> [%e generate_decoder config inner]
               | exception (Not_found [@warning "-3"]) -> [%e
                 if can_be_absent_as_field inner then
                   [%expr None ]
-                else 
+                else
                   make_error_raiser loc [%expr
                     "Field " ^ [%e const_str_expr field] ^
                     " on type " ^ [%e const_str_expr name] ^ " is missing"]]] [@metaloc loc]
@@ -156,7 +156,7 @@ and generate_record_decoder config loc name fields =
       |> List.map (function
           | Fr_named_field (field, loc, _) ->
             let loc = conv_loc loc in
-            ({ Location.loc = loc; txt = Longident.Lident field}, 
+            ({ Location.loc = loc; txt = Longident.Lident field},
              Exp.ident ~loc { loc; txt = Longident.Lident ("field_" ^ field) })
           | Fr_fragment_spread (field, loc, name) ->
             let loc = conv_loc loc in
@@ -178,11 +178,11 @@ and generate_object_decoder config loc name fields =
     | `Assoc value ->
       [%e
         Ast_helper.(
-          Exp.object_ 
-            (Cstr.mk 
+          Exp.object_
+            (Cstr.mk
                (Pat.any ())
                (List.map (function
-                    | Fr_named_field (key, _, inner) -> 
+                    | Fr_named_field (key, _, inner) ->
                       Cf.method_
                         { txt = key; loc = Location.none }
                         Public
@@ -192,7 +192,7 @@ and generate_object_decoder config loc name fields =
                                          | exception (Not_found [@warning "-3"])-> [%e
                                            if can_be_absent_as_field inner then
                                              [%expr None]
-                                           else 
+                                           else
                                              make_error_raiser loc [%expr "Field " ^ [%e const_str_expr key] ^ " on type " ^ [%e const_str_expr name] ^ " is missing"]
                                          ]]))
                     | Fr_fragment_spread (key, loc, name) ->
@@ -220,12 +220,12 @@ and generate_poly_variant_selection_set config loc name fields =
           | `Null -> [%e generator_loop next]
           | _ -> let value = temp in [%e variant_decoder]]
     | [] -> make_error_raiser loc [%expr
-              "All fields on variant selection set on type " ^ 
+              "All fields on variant selection set on type " ^
               [%e const_str_expr name] ^
               " were null"] in
   let variant_type = Ast_helper.(
       Typ.variant
-        (List.map (fun (name, _) -> Rtag ({ txt = Compat.capitalize_ascii name; loc }, [], false, [{ ptyp_desc = Ptyp_any; ptyp_attributes = []; ptyp_loc = Location.none }])) fields)
+        (List.map (fun (name, _) -> {prf_desc=Rtag ({ txt = Compat.capitalize_ascii name; loc }, false, [{ ptyp_desc = Ptyp_any; ptyp_attributes = []; ptyp_loc_stack= []; ptyp_loc = Location.none }]); prf_loc=loc;prf_attributes=[]}) fields)
         Closed None) in
   [%expr match value with
     | `Assoc value -> ([%e generator_loop fields]: [%t variant_type])
@@ -242,15 +242,16 @@ and generate_poly_variant_interface config loc name base fragments =
       let name_pattern = Pat.constant (Pconst_string (type_name, None)) in
       let variant = Exp.variant type_name (Some (generate_decoder config inner)) in
       Exp.case name_pattern variant
-    ) in 
+    ) in
   let map_case_ty (name, _) =
-    Rtag (name, [], false, [{ ptyp_desc = Ptyp_any; ptyp_attributes = []; ptyp_loc = Location.none }])
+    {prf_desc=Rtag (name, false, [{ ptyp_desc = Ptyp_any; ptyp_attributes = []; ptyp_loc_stack=[]; ptyp_loc = Location.none }]);
+     prf_loc=loc;prf_attributes=[]}
   in
 
   let fragment_cases = List.map map_case fragments in
   let fallback_case = map_fallback_case base in
   let base_name, base_decoder = base in
-  let fallback_case_ty = map_case_ty ({ txt = base_name; loc }, base_decoder) in 
+  let fallback_case_ty = map_case_ty ({ txt = base_name; loc }, base_decoder) in
 
   let fragment_case_tys = List.map map_case_ty (fragments |> List.map (fun (key, ty) -> ({ txt = key; loc }, ty))) in
   let interface_ty = Ast_helper.(Typ.variant (fallback_case_ty :: fragment_case_tys) Closed None) in
@@ -276,7 +277,7 @@ and generate_poly_variant_interface config loc name base fragments =
 and generate_poly_variant_union config loc name fragments exhaustive_flag =
   let fragment_cases = Ast_helper.(
       fragments
-      |> List.map (fun (type_name, inner) -> 
+      |> List.map (fun (type_name, inner) ->
           let name_pattern = Pat.constant (Pconst_string (type_name, None)) in
           let variant = Ast_helper.(Exp.variant type_name (Some (generate_decoder config inner))) in
           Exp.case name_pattern variant)) in
@@ -288,10 +289,10 @@ and generate_poly_variant_union config loc name fragments exhaustive_flag =
               "Union " ^ [%e const_str_expr name] ^
               " returned unknown type " ^ typename]),
          [ ])
-      | Nonexhaustive -> 
-        (Exp.case (Pat.any ()) [%expr `Nonexhaustive]), [Rtag ({ txt = "Nonexhaustive"; loc }, [], true, [])]) in
+      | Nonexhaustive ->
+        (Exp.case (Pat.any ()) [%expr `Nonexhaustive]), [{prf_desc=Rtag ({ txt = "Nonexhaustive"; loc }, true, []);prf_loc=loc;prf_attributes=[]}]) in
   let fragment_case_tys = List.map
-      (fun (name, _) -> Rtag ({ txt = name; loc }, [], false, [{ ptyp_desc = Ptyp_any; ptyp_attributes = []; ptyp_loc = Location.none }])) 
+      (fun (name, _) -> {prf_desc=Rtag ({ txt = name; loc }, false, [{ ptyp_desc = Ptyp_any; ptyp_attributes = []; ptyp_loc_stack=[]; ptyp_loc = Location.none }]);prf_loc=loc;prf_attributes=[]})
       fragments in
   let union_ty = Ast_helper.(Typ.variant (List.concat [ fallback_case_ty; fragment_case_tys ]) Closed None) in
   let typename_matcher = Ast_helper.(Exp.match_
